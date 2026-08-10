@@ -164,6 +164,8 @@
   if (contactForm) {
     var contactStatus = document.getElementById('contactFormStatus');
     var contactSubmitBtn = document.getElementById('contactSubmitBtn');
+    var contactSourceInput = document.getElementById('contactSource');
+    var contactSourceHint = document.getElementById('contactSourceHint');
     var nameInput = document.getElementById('contactName');
     var phoneInput = document.getElementById('contactPhone');
     var emailInput = document.getElementById('contactEmail');
@@ -171,6 +173,17 @@
     var nameError = document.getElementById('contactNameError');
     var phoneError = document.getElementById('contactPhoneError');
     var emailError = document.getElementById('contactEmailError');
+
+    document.querySelectorAll('[data-contact-source]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var source = button.getAttribute('data-contact-source') || 'Форма контактов';
+        if (contactSourceInput) contactSourceInput.value = source;
+        if (contactSourceHint) {
+          contactSourceHint.textContent = 'Тема обращения: ' + source;
+          contactSourceHint.hidden = false;
+        }
+      });
+    });
 
     function hideStatus() {
       if (!contactStatus) return;
@@ -275,14 +288,16 @@
       var phone = trimVal(phoneInput);
       var email = trimVal(emailInput);
       var message = messageInput ? trimVal(messageInput) : '';
+      var requestSource = contactSourceInput && contactSourceInput.value ? contactSourceInput.value : 'Форма контактов';
 
       var payload = {
         access_key: WEB3FORMS_ACCESS_KEY,
-        subject: 'Заявка с сайта ДОН ТРЕЙД',
+        subject: 'Заявка с сайта ДОН ТРЕЙД — ' + requestSource,
         from_name: name,
         name: name,
         email: email,
         phone: phone,
+        request_source: requestSource,
         message: message || '—'
       };
 
@@ -309,6 +324,10 @@
           if (d.success === true) {
             showStatus(true, 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.');
             contactForm.reset();
+            if (contactSourceHint) {
+              contactSourceHint.hidden = true;
+              contactSourceHint.textContent = '';
+            }
             clearFieldErrors();
             return;
           }

@@ -23,7 +23,7 @@
 						<a href="#contacts" class="nav__link">Контакты</a>
 					</nav>
 					<div class="header__actions">
-						<a class="btn btn_primary header__cta" href="#contacts">Запросить КП</a>
+						<a class="btn btn_primary header__cta" href="#contacts" data-contact-source="Запрос коммерческого предложения">Запросить КП</a>
 						<button class="menu-toggle" id="menuToggle" aria-label="Меню">
 							<svg
 								class="icon"
@@ -71,10 +71,10 @@
 									с гарантией соблюдения сроков.
 								</p>
 								<div class="hero__buttons">
-									<a class="btn btn_primary btn_lg" href="#contacts">
+									<a class="btn btn_primary btn_lg" href="#contacts" data-contact-source="Подробнее о поставках нефтепродуктов">
 										Узнать подробнее
 									</a>
-									<a class="btn btn_outline btn_lg" href="#contacts">
+									<a class="btn btn_outline btn_lg" href="#contacts" data-contact-source="Связаться по поставкам нефтепродуктов">
 										Связаться с нами
 									</a>
 								</div>
@@ -95,10 +95,10 @@
 									инфраструктура для бесперебойных поставок.
 								</p>
 								<div class="hero__buttons">
-									<a class="btn btn_primary btn_lg" href="#contacts">
+									<a class="btn btn_primary btn_lg" href="#contacts" data-contact-source="Подробнее о сети нефтебаз">
 										Узнать подробнее
 									</a>
-									<a class="btn btn_outline btn_lg" href="#contacts">
+									<a class="btn btn_outline btn_lg" href="#contacts" data-contact-source="Связаться по вопросам хранения и логистики">
 										Связаться с нами
 									</a>
 								</div>
@@ -119,10 +119,10 @@
 									качественный сервис.
 								</p>
 								<div class="hero__buttons">
-									<a class="btn btn_primary btn_lg" href="#contacts">
+									<a class="btn btn_primary btn_lg" href="#contacts" data-contact-source="Подробнее о корпоративной заправке на АЗС">
 										Узнать подробнее
 									</a>
-									<a class="btn btn_outline btn_lg" href="#contacts">
+									<a class="btn btn_outline btn_lg" href="#contacts" data-contact-source="Связаться по вопросам корпоративных АЗС">
 										Связаться с нами
 									</a>
 								</div>
@@ -689,7 +689,7 @@
 							</div>
 						</div>
 						<div class="section__cta reveal">
-							<a class="btn btn_primary btn_lg" href="#contacts">Стать партнёром</a>
+							<a class="btn btn_primary btn_lg" href="#contacts" data-contact-source="Стать партнёром">Стать партнёром</a>
 							<p class="partners__disclaimer">
 								Нажимая кнопку, вы соглашаетесь с
 								<button
@@ -939,6 +939,8 @@
 							<div class="contacts-form reveal">
 								<h3 class="contacts-form__title">Связаться с нами</h3>
 								<form class="form" id="contactForm" novalidate>
+									<input type="hidden" id="contactSource" name="request_source" value="Форма контактов" />
+									<p class="form__context" id="contactSourceHint" hidden></p>
 									<p
 										class="form__status"
 										id="contactFormStatus"
@@ -1202,7 +1204,7 @@
 							</ul>
 						</div>
 						<div class="footer__col">
-							<a class="btn btn_primary btn_full" href="#contacts">Заказать звонок</a>
+							<a class="btn btn_primary btn_full" href="#contacts" data-contact-source="Заказать обратный звонок">Заказать звонок</a>
 							<!-- Temporarily hidden:
 							<button class="btn btn_outline btn_full btn_white">
 								Личный кабинет
