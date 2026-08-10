@@ -1,0 +1,9 @@
+{
+  "name": "dontrade-vizitka",
+  "version": "1.0.0",
+  "description": "Одностраничный сайт-визитка ДОНТРЕЙД (HTML + CSS + JS)",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000"
+  }
+}
