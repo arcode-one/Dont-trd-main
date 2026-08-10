@@ -869,6 +869,10 @@ button { font: inherit; cursor: pointer; border: none; background: none; }
   margin-bottom: 1rem;
   cursor: pointer;
 }
+.contact-block:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
 .contact-block__icon {
   width: 48px;
   height: 48px;
@@ -949,6 +953,9 @@ button { font: inherit; cursor: pointer; border: none; background: none; }
   margin-bottom: 1rem;
 }
 .footer__contacts .icon { color: var(--color-accent); flex-shrink: 0; margin-top: 2px; }
+.footer__contacts a { transition: color 0.2s; }
+.footer__contacts a:hover,
+.footer__contacts a:focus-visible { color: var(--color-accent); }
 .footer__col .btn { margin-bottom: 0.5rem; }
 .footer__col .btn.btn_outline.btn_full.btn_white {
   background: transparent;
@@ -1185,4 +1192,3 @@ button { font: inherit; cursor: pointer; border: none; background: none; }
   transition: color 0.2s;
 }
 .footer__bottom-link:hover { color: white; }
-

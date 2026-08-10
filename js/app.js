@@ -330,7 +330,7 @@
   (function initContactsYandexMap() {
     var YANDEX_MAPS_API_KEY = 'YOUR_YANDEX_MAPS_API_KEY';
     var SCRIPT_ID = 'ymaps-2-1-script';
-    var COORDS = [47.2205, 39.7176];
+    var COORDS = [47.2272756, 39.7613446];
     var LABEL_W = 224;
     var ICON_OFFSET = [-LABEL_W / 2, -88];
     var container = document.getElementById('contactsYandexMap');
@@ -341,7 +341,7 @@
         '<div style="display:flex;flex-direction:column;align-items:center;width:' + LABEL_W + 'px;pointer-events:none;">' +
           '<div style="background:#ffffff;border:1px solid #d0d0d0;border-radius:7px;box-shadow:0 3px 16px rgba(0,0,0,0.22);padding:10px 14px;width:100%;box-sizing:border-box;">' +
             '<div style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#111111;white-space:nowrap;">ДОНТРЕЙД</div>' +
-            '<div style="font-family:Arial,sans-serif;font-size:11px;color:#555555;margin-top:3px;line-height:1.5;">пр. Буденновский, д. 60,<br>БЦ «Гедон», оф. 505</div>' +
+            '<div style="font-family:Arial,sans-serif;font-size:11px;color:#555555;margin-top:3px;line-height:1.5;">ул. Мясникова, зд. 31</div>' +
           '</div>' +
           '<div style="width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:10px solid #ffffff;margin-top:-1px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.13));"></div>' +
           '<div style="width:16px;height:16px;background:#E86F1F;border-radius:50%;border:2.5px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.35);margin-top:2px;flex-shrink:0;"></div>' +
