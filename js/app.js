@@ -278,7 +278,7 @@
 
       var payload = {
         access_key: WEB3FORMS_ACCESS_KEY,
-        subject: 'Заявка с сайта ДОНТРЕЙД',
+        subject: 'Заявка с сайта ДОН ТРЕЙД',
         from_name: name,
         name: name,
         email: email,
@@ -340,7 +340,7 @@
       return (
         '<div style="display:flex;flex-direction:column;align-items:center;width:' + LABEL_W + 'px;pointer-events:none;">' +
           '<div style="background:#ffffff;border:1px solid #d0d0d0;border-radius:7px;box-shadow:0 3px 16px rgba(0,0,0,0.22);padding:10px 14px;width:100%;box-sizing:border-box;">' +
-            '<div style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#111111;white-space:nowrap;">ДОНТРЕЙД</div>' +
+            '<div style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#111111;white-space:nowrap;">ДОН ТРЕЙД</div>' +
             '<div style="font-family:Arial,sans-serif;font-size:11px;color:#555555;margin-top:3px;line-height:1.5;">ул. Мясникова, зд. 31</div>' +
           '</div>' +
           '<div style="width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:10px solid #ffffff;margin-top:-1px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.13));"></div>' +
