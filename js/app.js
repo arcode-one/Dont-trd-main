@@ -1,14 +1,6 @@
 (function () {
   'use strict';
 
-  /**
-   * Заявки «Связаться с нами» — Web3Forms: https://web3forms.com
-   * 1) Зарегистрируйтесь, создайте форму, укажите email получателя заявок.
-   * 2) Скопируйте Access Key и вставьте в WEB3FORMS_ACCESS_KEY ниже.
-   * 3) В кабинете при желании ограничьте домен сайта (защита от спама с чужих страниц).
-   */
-  var WEB3FORMS_ACCESS_KEY = '9357caf7-9e27-492c-a734-811d12c9a2a3';
-
   // Hero Slider
   var slides = document.querySelectorAll('.hero__slide');
   var dotsContainer = document.getElementById('heroDots');
@@ -100,45 +92,244 @@
     revealObserver.observe(el);
   });
 
-  // Geography Markers
-  var markers = document.querySelectorAll('.marker');
-  var geographyItems = document.querySelectorAll('.geography-item');
+  // Geography — интерактивные федеральные округа
+  (function initFederalDistrictMap() {
+    var districtData = {
+      central: {
+        sourceColor: '#ffff80',
+        color: '#3B6888',
+        code: 'ЦФО',
+        name: 'Центральный федеральный округ',
+        location: 'Центральном федеральном округе'
+      },
+      northwestern: {
+        sourceColor: '#62d2c5',
+        color: '#4C8097',
+        code: 'СЗФО',
+        name: 'Северо-Западный федеральный округ',
+        location: 'Северо-Западном федеральном округе'
+      },
+      southern: {
+        sourceColor: '#fc8b8b',
+        color: '#B95D3B',
+        code: 'ЮФО',
+        name: 'Южный федеральный округ',
+        location: 'Южном федеральном округе'
+      },
+      'north-caucasian': {
+        sourceColor: '#aa6ca6',
+        color: '#8C5873',
+        code: 'СКФО',
+        name: 'Северо-Кавказский федеральный округ',
+        location: 'Северо-Кавказском федеральном округе'
+      },
+      volga: {
+        sourceColor: '#37ce04',
+        color: '#34756D',
+        code: 'ПФО',
+        name: 'Приволжский федеральный округ',
+        location: 'Приволжском федеральном округе'
+      },
+      ural: {
+        sourceColor: '#c7cb8f',
+        color: '#777A5F',
+        code: 'УФО',
+        name: 'Уральский федеральный округ',
+        location: 'Уральском федеральном округе'
+      },
+      siberian: {
+        sourceColor: '#01bee7',
+        color: '#337C99',
+        code: 'СФО',
+        name: 'Сибирский федеральный округ',
+        location: 'Сибирском федеральном округе'
+      },
+      'far-eastern': {
+        sourceColor: '#fece2c',
+        color: '#BE8437',
+        code: 'ДФО',
+        name: 'Дальневосточный федеральный округ',
+        location: 'Дальневосточном федеральном округе'
+      }
+    };
 
-  function setActiveCity(cityId) {
-    var id = cityId != null ? String(cityId) : null;
-    markers.forEach(function (m) {
-      m.classList.toggle('active', id && m.getAttribute('data-city') === id);
-    });
-    geographyItems.forEach(function (item) {
-      item.classList.toggle('active', id && item.getAttribute('data-city') === id);
-    });
-  }
+    var mapObject = document.getElementById('federalDistrictMap');
+    var mapLoading = document.getElementById('districtMapLoading');
+    var mapTooltip = document.getElementById('districtMapTooltip');
+    var mapTooltipLabel = document.getElementById('districtMapTooltipLabel');
+    var districtCode = document.getElementById('districtCode');
+    var districtTitle = document.getElementById('districtTitle');
+    var districtDescription = document.getElementById('districtDescription');
+    var districtButtons = document.querySelectorAll('.geography-district[data-district]');
+    var districtNodes = [];
+    var pinnedDistrict = null;
+    var mapReady = false;
 
-  markers.forEach(function (marker) {
-    marker.addEventListener('mouseenter', function () {
-      setActiveCity(marker.getAttribute('data-city'));
-    });
-    marker.addEventListener('mouseleave', function () {
-      setActiveCity(null);
-    });
-  });
+    if (!mapObject || !districtButtons.length) return;
 
-  geographyItems.forEach(function (item) {
-    item.addEventListener('mouseenter', function () {
-      setActiveCity(item.getAttribute('data-city'));
-    });
-    item.addEventListener('mouseleave', function () {
-      setActiveCity(null);
-    });
-  });
+    function updatePanel(districtId) {
+      var data = districtId ? districtData[districtId] : null;
+      if (!data) {
+        if (districtCode) districtCode.textContent = 'Вся Россия';
+        if (districtTitle) districtTitle.textContent = 'Федеральные округа';
+        if (districtDescription) {
+          districtDescription.textContent = 'Выберите территорию на карте. Условия, объём и маршрут поставки рассчитываются индивидуально под задачу бизнеса.';
+        }
+        return;
+      }
 
-  function clearActiveCity() {
-    markers.forEach(function (m) { m.classList.remove('active'); });
-    geographyItems.forEach(function (item) { item.classList.remove('active'); });
-  }
+      if (districtCode) districtCode.textContent = data.code + ' · География поставок';
+      if (districtTitle) districtTitle.textContent = data.name;
+      if (districtDescription) {
+        districtDescription.textContent = 'Работаем с корпоративными клиентами в ' + data.location + '. Маршрут, сроки и условия поставки рассчитываем индивидуально.';
+      }
+    }
 
-  document.querySelector('.geography-map') && document.querySelector('.geography-map').addEventListener('mouseleave', clearActiveCity);
-  document.querySelector('.geography-list') && document.querySelector('.geography-list').addEventListener('mouseleave', clearActiveCity);
+    function renderDistrict(districtId) {
+      var validId = districtId && districtData[districtId] ? districtId : null;
+
+      districtNodes.forEach(function (node) {
+        var isActive = validId && node.getAttribute('data-district') === validId;
+        node.classList.toggle('district-active', Boolean(isActive));
+        node.classList.toggle('district-muted', Boolean(validId && !isActive));
+      });
+
+      districtButtons.forEach(function (button) {
+        var buttonId = button.getAttribute('data-district');
+        button.classList.toggle('active', buttonId === validId);
+        button.setAttribute('aria-pressed', buttonId === pinnedDistrict ? 'true' : 'false');
+      });
+
+      updatePanel(validId);
+    }
+
+    function pinDistrict(districtId) {
+      pinnedDistrict = districtId;
+      renderDistrict(pinnedDistrict);
+    }
+
+    function hideTooltip() {
+      if (!mapTooltip) return;
+      mapTooltip.hidden = true;
+      mapTooltip.setAttribute('aria-hidden', 'true');
+    }
+
+    function showTooltip(districtId, event) {
+      if (!mapTooltip || !mapTooltipLabel || !districtData[districtId]) return;
+      var objectLeft = mapObject.offsetLeft;
+      var objectTop = mapObject.offsetTop;
+      var x = objectLeft + event.clientX;
+      var y = objectTop + event.clientY;
+      var minX = objectLeft + 92;
+      var maxX = Math.max(minX, objectLeft + mapObject.offsetWidth - 92);
+
+      mapTooltipLabel.textContent = districtData[districtId].name;
+      mapTooltip.style.setProperty('--tooltip-x', Math.min(Math.max(x, minX), maxX) + 'px');
+      mapTooltip.style.setProperty('--tooltip-y', Math.max(y, 58) + 'px');
+      mapTooltip.hidden = false;
+      mapTooltip.setAttribute('aria-hidden', 'false');
+    }
+
+    function setupSvgMap() {
+      if (mapReady) return;
+
+      try {
+        var svgDocument = mapObject.contentDocument;
+        var svgRoot = svgDocument && svgDocument.documentElement;
+        if (!svgRoot) return;
+
+        var svgNamespace = 'http://www.w3.org/2000/svg';
+        var interactionStyle = svgDocument.createElementNS(svgNamespace, 'style');
+        interactionStyle.textContent =
+          '[data-district]{cursor:pointer;stroke:#dce7ee!important;stroke-width:.72!important;stroke-linejoin:round;transition:opacity .22s ease,filter .22s ease,fill .22s ease;}' +
+          '[data-district].district-muted{opacity:.23!important;filter:saturate(.48);}' +
+          '[data-district].district-active{fill:#f07922!important;stroke:#fff!important;stroke-width:1.35!important;opacity:1!important;filter:drop-shadow(0 3px 3px rgba(0,0,0,.28));}' +
+          '@media(prefers-reduced-motion:reduce){[data-district]{transition:none;}}';
+        svgRoot.insertBefore(interactionStyle, svgRoot.firstChild);
+        svgRoot.style.width = '100%';
+        svgRoot.style.height = '100%';
+        svgRoot.style.background = 'transparent';
+        svgRoot.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+
+        Object.keys(districtData).forEach(function (districtId) {
+          var data = districtData[districtId];
+          var sourceColor = data.sourceColor.toLowerCase();
+
+          svgDocument.querySelectorAll('[style]').forEach(function (node) {
+            var styleValue = (node.getAttribute('style') || '').toLowerCase();
+            if (styleValue.indexOf('fill:' + sourceColor) === -1) return;
+            node.setAttribute('data-district', districtId);
+            node.style.fill = data.color;
+            districtNodes.push(node);
+          });
+        });
+
+        if (!districtNodes.length) throw new Error('District shapes were not found');
+
+        svgRoot.addEventListener('pointermove', function (event) {
+          var target = event.target.closest && event.target.closest('[data-district]');
+          if (!target) {
+            renderDistrict(pinnedDistrict);
+            hideTooltip();
+            return;
+          }
+
+          var districtId = target.getAttribute('data-district');
+          renderDistrict(districtId);
+          showTooltip(districtId, event);
+        });
+
+        svgRoot.addEventListener('pointerleave', function () {
+          renderDistrict(pinnedDistrict);
+          hideTooltip();
+        });
+
+        svgRoot.addEventListener('click', function (event) {
+          var target = event.target.closest && event.target.closest('[data-district]');
+          if (!target) return;
+          pinDistrict(target.getAttribute('data-district'));
+          hideTooltip();
+        });
+
+        mapReady = true;
+        if (mapLoading) mapLoading.hidden = true;
+      } catch (error) {
+        if (mapLoading) mapLoading.textContent = 'Выберите округ в панели справа';
+      }
+    }
+
+    districtButtons.forEach(function (button) {
+      var districtId = button.getAttribute('data-district');
+
+      button.addEventListener('mouseenter', function () {
+        renderDistrict(districtId);
+      });
+      button.addEventListener('mouseleave', function () {
+        renderDistrict(pinnedDistrict);
+      });
+      button.addEventListener('focus', function () {
+        renderDistrict(districtId);
+      });
+      button.addEventListener('blur', function () {
+        renderDistrict(pinnedDistrict);
+      });
+      button.addEventListener('click', function () {
+        pinDistrict(districtId);
+      });
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' || !pinnedDistrict) return;
+      pinnedDistrict = null;
+      renderDistrict(null);
+      hideTooltip();
+    });
+
+    mapObject.addEventListener('load', setupSvgMap);
+    if (mapObject.contentDocument && mapObject.contentDocument.documentElement) {
+      setupSvgMap();
+    }
+  })();
 
   // Current Year
   var yearEl = document.getElementById('currentYear');
@@ -158,192 +349,6 @@
       }
     });
   });
-
-  // Contact Form — валидация + отправка через Web3Forms
-  var contactForm = document.getElementById('contactForm');
-  if (contactForm) {
-    var contactStatus = document.getElementById('contactFormStatus');
-    var contactSubmitBtn = document.getElementById('contactSubmitBtn');
-    var contactSourceInput = document.getElementById('contactSource');
-    var contactSourceHint = document.getElementById('contactSourceHint');
-    var nameInput = document.getElementById('contactName');
-    var phoneInput = document.getElementById('contactPhone');
-    var emailInput = document.getElementById('contactEmail');
-    var messageInput = document.getElementById('contactMessage');
-    var nameError = document.getElementById('contactNameError');
-    var phoneError = document.getElementById('contactPhoneError');
-    var emailError = document.getElementById('contactEmailError');
-
-    document.querySelectorAll('[data-contact-source]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        var source = button.getAttribute('data-contact-source') || 'Форма контактов';
-        if (contactSourceInput) contactSourceInput.value = source;
-        if (contactSourceHint) {
-          contactSourceHint.textContent = 'Тема обращения: ' + source;
-          contactSourceHint.hidden = false;
-        }
-      });
-    });
-
-    function hideStatus() {
-      if (!contactStatus) return;
-      contactStatus.hidden = true;
-      contactStatus.textContent = '';
-      contactStatus.classList.remove('form__status_ok', 'form__status_err');
-    }
-
-    function showStatus(ok, text) {
-      if (!contactStatus) return;
-      contactStatus.hidden = false;
-      contactStatus.textContent = text;
-      contactStatus.classList.toggle('form__status_ok', ok);
-      contactStatus.classList.toggle('form__status_err', !ok);
-    }
-
-    function clearFieldErrors() {
-      [nameInput, phoneInput, emailInput].forEach(function (input) {
-        if (!input) return;
-        var group = input.closest('.form__group');
-        if (group) group.classList.remove('form__group_invalid');
-        input.removeAttribute('aria-invalid');
-      });
-      [nameError, phoneError, emailError].forEach(function (el) {
-        if (!el) return;
-        el.hidden = true;
-        el.textContent = '';
-      });
-    }
-
-    function setFieldError(input, errorEl, message) {
-      if (!input || !errorEl) return;
-      var group = input.closest('.form__group');
-      if (group) group.classList.add('form__group_invalid');
-      input.setAttribute('aria-invalid', 'true');
-      errorEl.textContent = message;
-      errorEl.hidden = false;
-    }
-
-    function trimVal(input) {
-      return input && input.value ? input.value.trim() : '';
-    }
-
-    function isValidEmail(str) {
-      if (!str) return false;
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
-    }
-
-    function validateClient() {
-      clearFieldErrors();
-      var ok = true;
-      var name = trimVal(nameInput);
-      var phone = trimVal(phoneInput);
-      var email = trimVal(emailInput);
-
-      if (!name) {
-        setFieldError(nameInput, nameError, 'Укажите имя');
-        ok = false;
-      }
-      if (!phone) {
-        setFieldError(phoneInput, phoneError, 'Укажите телефон');
-        ok = false;
-      }
-      if (!isValidEmail(email)) {
-        setFieldError(emailInput, emailError, 'Укажите корректный email');
-        ok = false;
-      }
-      return ok;
-    }
-
-    [nameInput, phoneInput, emailInput].forEach(function (input) {
-      if (!input) return;
-      input.addEventListener('input', function () {
-        var group = input.closest('.form__group');
-        if (group) group.classList.remove('form__group_invalid');
-        input.removeAttribute('aria-invalid');
-        var errId = input.id === 'contactName' ? nameError : input.id === 'contactPhone' ? phoneError : emailError;
-        if (errId) {
-          errId.hidden = true;
-          errId.textContent = '';
-        }
-        hideStatus();
-      });
-    });
-
-    contactForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      hideStatus();
-
-      if (!validateClient()) {
-        var firstInvalid = contactForm.querySelector('.form__group_invalid input, .form__group_invalid textarea');
-        if (firstInvalid) firstInvalid.focus();
-        return;
-      }
-
-      if (!WEB3FORMS_ACCESS_KEY) {
-        showStatus(false, 'Заявки не настроены: вставьте Access Key с web3forms.com в js/app.js (см. комментарий в начале файла).');
-        return;
-      }
-
-      var name = trimVal(nameInput);
-      var phone = trimVal(phoneInput);
-      var email = trimVal(emailInput);
-      var message = messageInput ? trimVal(messageInput) : '';
-      var requestSource = contactSourceInput && contactSourceInput.value ? contactSourceInput.value : 'Форма контактов';
-
-      var payload = {
-        access_key: WEB3FORMS_ACCESS_KEY,
-        subject: 'Заявка с сайта ДОН ТРЕЙД — ' + requestSource,
-        from_name: name,
-        name: name,
-        email: email,
-        phone: phone,
-        request_source: requestSource,
-        message: message || '—'
-      };
-
-      if (contactSubmitBtn) {
-        contactSubmitBtn.classList.add('btn_pending');
-        contactSubmitBtn.disabled = true;
-      }
-
-      fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-        .then(function (r) {
-          return r.json().then(function (data) {
-            return { data: data };
-          });
-        })
-        .then(function (res) {
-          var d = res.data || {};
-          if (d.success === true) {
-            showStatus(true, 'Заявка отправлена. Мы свяжемся с вами в ближайшее время.');
-            contactForm.reset();
-            if (contactSourceHint) {
-              contactSourceHint.hidden = true;
-              contactSourceHint.textContent = '';
-            }
-            clearFieldErrors();
-            return;
-          }
-          showStatus(false, d.message || 'Не удалось отправить. Попробуйте позже.');
-        })
-        .catch(function () {
-          showStatus(false, 'Нет связи с интернетом или сервис временно недоступен.');
-        })
-        .then(function () {
-          if (contactSubmitBtn) {
-            contactSubmitBtn.classList.remove('btn_pending');
-            contactSubmitBtn.disabled = false;
-          }
-        });
-    });
-  }
 
   // Yandex Map — контейнер .contacts-map__overlay (#contactsYandexMap)
   (function initContactsYandexMap() {
