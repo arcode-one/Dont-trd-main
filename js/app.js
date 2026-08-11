@@ -537,4 +537,192 @@
     });
   });
 
+  // Yandex Map — контейнер .contacts-map__overlay (#contactsYandexMap)
+  (function initContactsYandexMap() {
+    var YANDEX_MAPS_API_KEY = 'YOUR_YANDEX_MAPS_API_KEY';
+    var SCRIPT_ID = 'ymaps-2-1-script';
+    var COORDS = [47.2272756, 39.7613446];
+    var LABEL_W = 224;
+    var ICON_OFFSET = [-LABEL_W / 2, -88];
+    var container = document.getElementById('contactsYandexMap');
+    if (!container) return;
+
+    function contactsMapLabelHtml() {
+      return (
+        '<div style="display:flex;flex-direction:column;align-items:center;width:' + LABEL_W + 'px;pointer-events:none;">' +
+          '<div style="background:#ffffff;border:1px solid #d0d0d0;border-radius:7px;box-shadow:0 3px 16px rgba(0,0,0,0.22);padding:10px 14px;width:100%;box-sizing:border-box;">' +
+            '<div style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:#111111;white-space:nowrap;">ДОН ТРЕЙД</div>' +
+            '<div style="font-family:Arial,sans-serif;font-size:11px;color:#555555;margin-top:3px;line-height:1.5;">ул. Мясникова, зд. 31</div>' +
+          '</div>' +
+          '<div style="width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:10px solid #ffffff;margin-top:-1px;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.13));"></div>' +
+          '<div style="width:16px;height:16px;background:#E86F1F;border-radius:50%;border:2.5px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.35);margin-top:2px;flex-shrink:0;"></div>' +
+        '</div>'
+      );
+    }
+
+    function initMap() {
+      if (container.getAttribute('data-map-initialized') === '1' || !window.ymaps) return;
+      window.ymaps.ready(function () {
+        if (container.getAttribute('data-map-initialized') === '1') return;
+        container.setAttribute('data-map-initialized', '1');
+
+        var map = new window.ymaps.Map(container, {
+          center: COORDS,
+          zoom: 16,
+          controls: ['zoomControl', 'fullscreenControl']
+        });
+        var LabelLayout = window.ymaps.templateLayoutFactory.createClass(contactsMapLabelHtml());
+        map.geoObjects.add(new window.ymaps.Placemark(COORDS, {}, {
+          iconLayout: LabelLayout,
+          iconOffset: ICON_OFFSET,
+          iconShape: {
+            type: 'Rectangle',
+            coordinates: [[-LABEL_W / 2, -88], [LABEL_W / 2, 8]]
+          }
+        }));
+      });
+    }
+
+    function ensureScript() {
+      var existing = document.getElementById(SCRIPT_ID);
+      if (existing) {
+        if (window.ymaps) initMap();
+        else existing.addEventListener('load', initMap);
+        return;
+      }
+      var script = document.createElement('script');
+      script.id = SCRIPT_ID;
+      script.async = true;
+      script.src = 'https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=' + encodeURIComponent(YANDEX_MAPS_API_KEY) + '&load=package.full';
+      script.onload = initMap;
+      document.head.appendChild(script);
+    }
+
+    var mapObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        mapObserver.disconnect();
+        ensureScript();
+      });
+    }, { rootMargin: '100px 0px', threshold: 0.05 });
+    mapObserver.observe(container);
+  })();
+
+  // Consent: cookies & privacy modals
+  var STORAGE_COOKIES = 'dontrade_cookies_consent';
+  var STORAGE_PRIVACY = 'dontrade_privacy_consent';
+  var cookieBanner = document.getElementById('cookieBanner');
+  var privacyModal = document.getElementById('privacyModal');
+  var cookiesModal = document.getElementById('cookiesModal');
+  var modals = { privacy: privacyModal, cookies: cookiesModal };
+  var activeModal = null;
+
+  function setConsent(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (err) { /* localStorage may be unavailable */ }
+  }
+
+  function getConsent(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function showCookieBanner() {
+    if (!cookieBanner || getConsent(STORAGE_COOKIES)) return;
+    cookieBanner.classList.add('cookie-banner_visible');
+    cookieBanner.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideCookieBanner() {
+    if (!cookieBanner) return;
+    cookieBanner.classList.remove('cookie-banner_visible');
+    cookieBanner.setAttribute('aria-hidden', 'true');
+  }
+
+  function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('modal-overlay_open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (activeModal === modal) activeModal = null;
+  }
+
+  function openModal(name) {
+    var modal = modals[name];
+    if (!modal) return;
+    if (activeModal && activeModal !== modal) closeModal(activeModal);
+    activeModal = modal;
+    modal.classList.add('modal-overlay_open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function acceptCookies() {
+    setConsent(STORAGE_COOKIES, 'accepted');
+    hideCookieBanner();
+    closeModal(cookiesModal);
+  }
+
+  function declineCookies() {
+    setConsent(STORAGE_COOKIES, 'declined');
+    hideCookieBanner();
+    closeModal(cookiesModal);
+  }
+
+  function acceptPrivacy() {
+    setConsent(STORAGE_PRIVACY, 'accepted');
+    closeModal(privacyModal);
+  }
+
+  function declinePrivacy() {
+    setConsent(STORAGE_PRIVACY, 'declined');
+    closeModal(privacyModal);
+  }
+
+  document.querySelectorAll('[data-open-modal]').forEach(function (trigger) {
+    trigger.addEventListener('click', function (event) {
+      event.preventDefault();
+      openModal(trigger.getAttribute('data-open-modal'));
+    });
+    trigger.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openModal(trigger.getAttribute('data-open-modal'));
+    });
+  });
+
+  document.querySelectorAll('[data-close-modal]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      closeModal(button.closest('.modal-overlay'));
+    });
+  });
+
+  [privacyModal, cookiesModal].forEach(function (modal) {
+    if (!modal) return;
+    modal.addEventListener('click', function (event) {
+      if (event.target === modal) closeModal(modal);
+    });
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && activeModal) closeModal(activeModal);
+  });
+
+  var cookieAccept = document.getElementById('cookieAccept');
+  var cookieDecline = document.getElementById('cookieDecline');
+  var cookiesAccept = document.getElementById('cookiesAccept');
+  var cookiesDecline = document.getElementById('cookiesDecline');
+  var privacyAccept = document.getElementById('privacyAccept');
+  var privacyDecline = document.getElementById('privacyDecline');
+  if (cookieAccept) cookieAccept.addEventListener('click', acceptCookies);
+  if (cookieDecline) cookieDecline.addEventListener('click', declineCookies);
+  if (cookiesAccept) cookiesAccept.addEventListener('click', acceptCookies);
+  if (cookiesDecline) cookiesDecline.addEventListener('click', declineCookies);
+  if (privacyAccept) privacyAccept.addEventListener('click', acceptPrivacy);
+  if (privacyDecline) privacyDecline.addEventListener('click', declinePrivacy);
+
+  showCookieBanner();
+
 })();
